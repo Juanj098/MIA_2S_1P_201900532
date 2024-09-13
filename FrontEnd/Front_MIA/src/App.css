@@ -1,0 +1,56 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+img{
+  width: 100px;
+  margin: 20px;
+}
+
+.card {
+  position: relative;
+  top: 370px;
+  left: 0;
+  padding: 2em;
+}
+
+.navBar{
+  display: flex;
+  position: fixed;
+  left: 0;
+  top: 0;
+  align-items: center;
+  width: 99.8%;
+  height: 120px;
+}
+.consoles{
+  display: flex;
+  margin: 10px;
+  position: fixed;
+  top: 100px;
+  align-items: center;
+  justify-content: center;
+  width: 99.2%;
+  left: -10px;
+  padding: 5px;
+  height: 800px;
+}
+.txt_entrada, 
+.txt_salida{
+  height: 500px;
+  width: 700px;
+  margin: 15px;
+  resize: none;
+}
+
+.btnA{
+  width: 200px;
+  height: 60px;
+}
+
+.imgArch:hover{
+  filter:drop-shadow(2px 2px 20px cyan)
+}
