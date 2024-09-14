@@ -2,12 +2,15 @@ package comandos
 
 import (
 	"fmt"
+	Structs "main/Structs"
 	utils "main/Utils"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type MKDISK struct {
@@ -87,6 +90,10 @@ func CommandDisk(disk *MKDISK) error {
 	if err != nil {
 		return err
 	}
+	err = createMBR(disk, sizeBytes)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -112,5 +119,37 @@ func createDisk(mkdisk *MKDISK, sizeBytes int) error {
 		}
 		sizeBytes -= writesize
 	}
+	return nil
+}
+
+func createMBR(disk *MKDISK, sizeB int) error {
+	var fit byte
+	switch disk.fit {
+	case "FF":
+		fit = 'F'
+	case "BF":
+		fit = 'B'
+	case "WF":
+		fit = 'W'
+	default:
+		fmt.Println("invalid fit type :)")
+	}
+	mbr := Structs.MBR{
+		Mbr_size:           int32(sizeB),
+		Mbr_fecha_creacion: float32(time.Now().Unix()),
+		Mbr_dsk_signature:  rand.Int31(),
+		Disk_fit:           [1]byte{fit},
+		Mbr_partition: [4]Structs.Partition{
+			{Partition_status: [1]byte{'N'}, Partition_type: [1]byte{'N'}, Partition_fit: [1]byte{'N'}, Partition_star: -1, Partition_name: [16]byte{'P'}, Partition_corr: 0, Partition_id: [4]byte{'N'}},
+			{Partition_status: [1]byte{'N'}, Partition_type: [1]byte{'N'}, Partition_fit: [1]byte{'N'}, Partition_star: -1, Partition_name: [16]byte{'P'}, Partition_corr: 1, Partition_id: [4]byte{'N'}},
+			{Partition_status: [1]byte{'N'}, Partition_type: [1]byte{'N'}, Partition_fit: [1]byte{'N'}, Partition_star: -1, Partition_name: [16]byte{'P'}, Partition_corr: 2, Partition_id: [4]byte{'N'}},
+			{Partition_status: [1]byte{'N'}, Partition_type: [1]byte{'N'}, Partition_fit: [1]byte{'N'}, Partition_star: -1, Partition_name: [16]byte{'P'}, Partition_corr: 3, Partition_id: [4]byte{'N'}},
+		},
+	}
+	err := mbr.SerializeMBR(disk.path)
+	if err != nil {
+		fmt.Println("Error: ", err)
+	}
+	mbr.PrintMBR()
 	return nil
 }

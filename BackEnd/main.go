@@ -3,7 +3,8 @@ package main
 import (
 	"bufio"
 	"fmt"
-	MKDISK "main/Comandos"
+	COMMANDS "main/Comandos"
+
 	"os"
 	"strings"
 )
@@ -59,10 +60,9 @@ func Analizer(cadena string) {
 			com := strings.ToUpper(f[0])
 			switch com {
 			case "MKDISK":
-				// fmt.Println(f[1:])
-				MKDISK.ParseMKDISK(f[1:])
+				COMMANDS.ParseMKDISK(f[1:])
 			case "RMDISK":
-				fmt.Println("2.RMDISK")
+				COMMANDS.ParseRMDISK(f[1:])
 			case "FDISK":
 				fmt.Println("3.FDISK")
 			case "MOUNT":
