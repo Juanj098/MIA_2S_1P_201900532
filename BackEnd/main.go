@@ -64,7 +64,7 @@ func Analizer(cadena string) {
 			case "RMDISK":
 				COMMANDS.ParseRMDISK(f[1:])
 			case "FDISK":
-				fmt.Println("3.FDISK")
+				COMMANDS.ParseFDISK(f[1:])
 			case "MOUNT":
 				fmt.Println("4.MOUNT")
 			case "MKFS":
