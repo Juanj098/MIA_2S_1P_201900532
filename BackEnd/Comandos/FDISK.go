@@ -211,6 +211,7 @@ func P_Logica(disk *FDISK, sizeB int) error {
 		if err != nil {
 			return err
 		}
+		ebr.SerializeEBR(disk.Path, int64(ext.Partition_star))
 		size, err := utils.ConvertTobytes(disk.Size, disk.Unit)
 		if err != nil {
 			return err
@@ -230,7 +231,6 @@ func P_Logica(disk *FDISK, sizeB int) error {
 		if err != nil {
 			return err
 		}
-		ebr.SerializeEBR(disk.Path, int64(ext.Partition_star))
 		for _, ebr := range allEBRs {
 			fmt.Println("<UwU>")
 			ebr.PrintEBR()
