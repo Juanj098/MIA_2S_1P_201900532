@@ -1,6 +1,7 @@
 package comandos
 
 import (
+	"encoding/binary"
 	"fmt"
 	structs "main/Structs"
 	utils "main/Utils"
@@ -193,12 +194,50 @@ func P_Logica(disk *FDISK, sizeB int) error {
 	if err != nil {
 		return err
 	}
-
 	resp := mbr.ContainExt()
 	if resp {
-		fmt.Println("contiene particion extendida")
+		sMBR := binary.Size(mbr)
+		ext, val, err := mbr.RetExt(sMBR)
+		if err != nil {
+			return nil
+		}
+		// ext.Print()
+		var ebr structs.EBR
+		err = ebr.DeserializeEBR(disk.Path, int(ext.Partition_star))
+		if err != nil {
+			return err
+		}
+		LastEBR, posv, err := ebr.FIndLastEBR(val, disk.Path)
+		if err != nil {
+			return err
+		}
+		size, err := utils.ConvertTobytes(disk.Size, disk.Unit)
+		if err != nil {
+			return err
+		}
+		LastEBR.Part_start = int32(posv) + int32(binary.Size(ebr))
+		LastEBR.Part_next = int32(posv) + int32(binary.Size(ebr)) + int32(size)
+		LastEBR.Part_s = int32(size)
+		copy(LastEBR.Part_fit[:], []byte(disk.Fit))
+		copy(LastEBR.Part_name[:], []byte(disk.Name))
+		LastEBR.SerializeEBR(disk.Path, int64(posv))
+		pnext := int32(posv) + int32(binary.Size(ebr)) + int32(size)
+		err = NextEBR(disk, int(pnext))
+		if err != nil {
+			return fmt.Errorf("no se pudo crear el siguiente EBR")
+		}
+		allEBRs, err := ebr.Prints(int(val), disk.Path)
+		if err != nil {
+			return err
+		}
+		ebr.SerializeEBR(disk.Path, int64(ext.Partition_star))
+		for _, ebr := range allEBRs {
+			fmt.Println("<UwU>")
+			ebr.PrintEBR()
+		}
+
 	} else {
-		fmt.Println("no contiene particion extendida")
+		fmt.Println("no hay particion extendida ")
 	}
 
 	err = mbr.SerializeMBR(disk.Path)
@@ -210,18 +249,32 @@ func P_Logica(disk *FDISK, sizeB int) error {
 
 func CreateEBR(f *FDISK, p *structs.Partition) error {
 	ebr := structs.EBR{
-		Part_mount: [1]byte{'N'},
-		Part_fit:   [1]byte{'N'},
-		Part_start: p.Partition_star,
-		Part_s:     0,
+		Part_mount: [1]byte{' '},
+		Part_fit:   [1]byte{' '},
+		Part_start: -1,
+		Part_s:     -1,
 		Part_next:  -1,
-		Part_name:  [16]byte{'N'},
+		Part_name:  [16]byte{' '},
 	}
 	err := ebr.SerializeEBR(f.Path, int64(p.Partition_star))
 	if err != nil {
 		return err
 	}
-	fmt.Println("<EBR>")
-	ebr.PrintEBR()
+	return nil
+}
+
+func NextEBR(f *FDISK, pos int) error {
+	ebr := structs.EBR{
+		Part_mount: [1]byte{' '},
+		Part_fit:   [1]byte{' '},
+		Part_start: -1,
+		Part_s:     -1,
+		Part_next:  -1,
+		Part_name:  [16]byte{' '},
+	}
+	err := ebr.SerializeEBR(f.Path, int64(pos))
+	if err != nil {
+		return fmt.Errorf("aqui es el error -> %v", err)
+	}
 	return nil
 }

@@ -108,3 +108,16 @@ func (mbr *MBR) ContainExt() bool {
 	}
 	return false
 }
+
+func (mbr *MBR) RetExt(valmbr int) (*Partition, int, error) {
+	totAl := valmbr
+	for _, partition := range mbr.Mbr_partition {
+
+		if partition.Partition_type == [1]byte{'E'} {
+			return &partition, totAl, nil
+		} else {
+			totAl += int(partition.Partition_size)
+		}
+	}
+	return nil, 0, nil
+}

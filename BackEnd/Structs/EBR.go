@@ -25,7 +25,7 @@ func (ebr *EBR) SerializeEBR(path string, pos int64) error {
 
 	_, err = file.Seek(pos, 0)
 	if err != nil {
-		return err
+		return fmt.Errorf("aqui?: %v", err)
 	}
 
 	err = binary.Write(file, binary.BigEndian, ebr)
@@ -72,4 +72,77 @@ func (ebr *EBR) PrintEBR() {
 	fmt.Printf("p_s: %d\n", ebr.Part_s)
 	fmt.Printf("p_next: %d\n", ebr.Part_next)
 	fmt.Printf("p_name: %s\n", ebr.Part_name)
+}
+
+func (ebr *EBR) FIndLastEBR(starpos int, path string) (*EBR, int, error) {
+	var currentEBR EBR
+	pos := starpos
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer file.Close()
+	for {
+		_, err = file.Seek(int64(pos), 0)
+		if err != nil {
+			return nil, 0, err
+		}
+		EBRsize := binary.Size(currentEBR)
+		if EBRsize <= 0 {
+			return nil, 0, fmt.Errorf("el tamano del ebr no es compatible: %d\n ", EBRsize)
+		}
+		buffer := make([]byte, EBRsize)
+		_, err = file.Read(buffer)
+		if err != nil {
+			return nil, 0, err
+		}
+		reader := bytes.NewReader(buffer)
+		err = binary.Read(reader, binary.BigEndian, &currentEBR)
+		if err != nil {
+			return nil, 0, err
+		}
+		if currentEBR.Part_next == -1 {
+			return &currentEBR, pos, nil
+		}
+		pos = int(currentEBR.Part_next)
+	}
+}
+
+func (ebr *EBR) Prints(posI int, path string) ([]EBR, error) {
+	var currentEBR EBR
+	pos := posI
+	var ebrList []EBR
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	for {
+
+		_, err = file.Seek(int64(pos), 0)
+		if err != nil {
+			return nil, err
+		}
+		EBRsize := binary.Size(currentEBR)
+		if EBRsize <= 0 {
+			return nil, fmt.Errorf("el tamano del ebr no es compatible: %d\n ", EBRsize)
+		}
+		buffer := make([]byte, EBRsize)
+		_, err = file.Read(buffer)
+		if err != nil {
+			return nil, err
+		}
+		reader := bytes.NewReader(buffer)
+		err = binary.Read(reader, binary.BigEndian, &currentEBR)
+		if err != nil {
+			return nil, err
+		}
+		ebrList = append(ebrList, currentEBR)
+		if currentEBR.Part_next == -1 {
+			break
+		}
+		pos = int(currentEBR.Part_next)
+	}
+	return ebrList, nil
 }
